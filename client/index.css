@@ -26,6 +26,14 @@ body {
     height: 120px;
 }
 
+@media (max-width: 767px) { 
+    .card-img-top {
+        height: 100%;
+    }
+ }
+
+
+
 .card-text {
     overflow: hidden;
     text-overflow: ellipsis;
