@@ -28989,7 +28989,7 @@ exports.default = function () {
     switch (action.type) {
         case _types.VIDEOS_FETCH_ALL:
             return (0, _immutable.fromJS)(_extends({}, state.toJS(), {
-                videos: action.payload,
+                videos: state.toJS().videos.concat(action.payload),
                 loaded: true
             }));
         default:
@@ -33626,16 +33626,45 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var home = function (_React$Component) {
     _inherits(home, _React$Component);
 
-    function home() {
+    function home(props) {
         _classCallCheck(this, home);
 
-        return _possibleConstructorReturn(this, (home.__proto__ || Object.getPrototypeOf(home)).apply(this, arguments));
+        var _this = _possibleConstructorReturn(this, (home.__proto__ || Object.getPrototypeOf(home)).call(this, props));
+
+        _this.state = {
+            loading: false,
+            endScroll: false
+        };
+        return _this;
     }
 
     _createClass(home, [{
         key: 'componentWillMount',
         value: function componentWillMount() {
             this.props.loadAllVideos(this.props.auth.token, this.props.history);
+        }
+    }, {
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+            window.addEventListener('scroll', this.handleScroll.bind(this));
+            window.scrollTo(0, 0);
+        }
+    }, {
+        key: 'componentWillUnmount',
+        value: function componentWillUnmount() {
+            window.removeEventListener('scroll', this.handleScroll.bind(this));
+        }
+    }, {
+        key: 'handleScroll',
+        value: function handleScroll(event) {
+            if ($(window).scrollTop() + $(window).height() == $(document).height()) {
+                if (this.props.videos.videos.length < 30 && !this.state.loading && !this.state.endScroll) {
+                    this.setState({ loading: true });
+                    this.props.loadAllVideos(this.props.auth.token, this.props.history);
+                } else {
+                    this.setState({ loading: false, endScroll: true });
+                }
+            }
         }
     }, {
         key: 'render',
@@ -33660,12 +33689,41 @@ var home = function (_React$Component) {
             return _react2.default.createElement(
                 'div',
                 { className: 'container-fluid' },
+                _react2.default.createElement('div', { id: 'start' }),
                 _react2.default.createElement(
                     'div',
                     { className: 'row' },
                     videos.map(function (video, index) {
-                        return _react2.default.createElement(_Videocard2.default, { key: video._id, video: video, data: { length: videos.length, index: index } });
+                        return _react2.default.createElement(_Videocard2.default, { key: index, video: video, data: { length: videos.length, index: index } });
                     })
+                ),
+                this.state.loading && _react2.default.createElement(
+                    'div',
+                    { className: 'row justify-content-center' },
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'col-2' },
+                        _react2.default.createElement('div', { className: 'loader' })
+                    )
+                ),
+                this.state.endScroll && _react2.default.createElement(
+                    'div',
+                    { className: 'row justify-content-center' },
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'col-2' },
+                        _react2.default.createElement(
+                            'button',
+                            { onClick: function onClick() {
+                                    window.scrollTo(0, 0);
+                                } },
+                            _react2.default.createElement(
+                                'h4',
+                                null,
+                                'Back to top'
+                            )
+                        )
+                    )
                 )
             );
         }

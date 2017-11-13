@@ -14,7 +14,7 @@ export default (state = INITIAL_STATE, action) => {
     case VIDEOS_FETCH_ALL:
         return fromJS({
             ...state.toJS(),
-            videos: action.payload,
+            videos: state.toJS().videos.concat(action.payload),
             loaded:true
         });
     default:
