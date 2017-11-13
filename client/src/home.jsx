@@ -16,7 +16,7 @@ class home extends React.Component {
 
       
     componentWillMount(){
-        this.props.loadAllVideos(this.props.auth.token,this.props.history);
+        this.props.loadAllVideos(this.props.auth.token,this.props.history,true);
     }
 
     componentDidMount() {
@@ -28,11 +28,12 @@ class home extends React.Component {
         window.removeEventListener('scroll', this.handleScroll.bind(this))
     }
 
+    //METHOD FOR LAZY LOADING SCROLL
     handleScroll(event) {
         if($(window).scrollTop() + $(window).height() == $(document).height()) {
-            if(this.props.videos.videos.length < 30 && !this.state.loading && !this.state.endScroll){
+            if(this.props.videos.videos.length <= 31 && !this.state.endScroll){
                 this.setState({loading:true});
-                this.props.loadAllVideos(this.props.auth.token,this.props.history);
+                this.props.loadAllVideos(this.props.auth.token,this.props.history,false);
                 
             }else{
                 this.setState({loading:false,endScroll:true})
@@ -53,7 +54,6 @@ class home extends React.Component {
             );
         }
 
-        
         return(
             <div className="container-fluid" >
                 <div id="start"/>

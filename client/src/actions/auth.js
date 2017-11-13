@@ -8,6 +8,7 @@ import {
 import axios from 'axios';
 import md5 from 'js-md5';
 
+//METHODS FOR AUTH LOGIC
 
 export function loadAuth() {
     return (dispatch) => {

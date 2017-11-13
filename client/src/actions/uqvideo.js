@@ -5,6 +5,8 @@ import {
 import axios from 'axios';
 import { logout } from './';
 
+//METHODS FOR SINGLE VIDEO LOADING AND RATING SAVING
+
 export function loadVideo(videoId,sessionId,history) {
     return (dispatch) => {
       

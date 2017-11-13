@@ -8357,6 +8357,8 @@ var _jsMd2 = _interopRequireDefault(_jsMd);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+//METHODS FOR AUTH LOGIC
+
 function loadAuth() {
   return function (dispatch) {
     var token = window.localStorage.getItem('token');
@@ -33641,7 +33643,7 @@ var home = function (_React$Component) {
     _createClass(home, [{
         key: 'componentWillMount',
         value: function componentWillMount() {
-            this.props.loadAllVideos(this.props.auth.token, this.props.history);
+            this.props.loadAllVideos(this.props.auth.token, this.props.history, true);
         }
     }, {
         key: 'componentDidMount',
@@ -33654,13 +33656,16 @@ var home = function (_React$Component) {
         value: function componentWillUnmount() {
             window.removeEventListener('scroll', this.handleScroll.bind(this));
         }
+
+        //METHOD FOR LAZY LOADING SCROLL
+
     }, {
         key: 'handleScroll',
         value: function handleScroll(event) {
             if ($(window).scrollTop() + $(window).height() == $(document).height()) {
-                if (this.props.videos.videos.length < 30 && !this.state.loading && !this.state.endScroll) {
+                if (this.props.videos.videos.length <= 31 && !this.state.endScroll) {
                     this.setState({ loading: true });
-                    this.props.loadAllVideos(this.props.auth.token, this.props.history);
+                    this.props.loadAllVideos(this.props.auth.token, this.props.history, false);
                 } else {
                     this.setState({ loading: false, endScroll: true });
                 }
@@ -33761,6 +33766,8 @@ var _ = __webpack_require__(14);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+//METHODS FOR SINGLE VIDEO LOADING AND RATING SAVING
+
 function loadVideo(videoId, sessionId, history) {
   return function (dispatch) {
 
@@ -33830,12 +33837,15 @@ var _ = __webpack_require__(14);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function loadAllVideos(sessionId, history) {
-  return function (dispatch) {
-    dispatch({
-      type: _types.VIDEO_CLEAN
-    });
+//METHOD FOR RETRIEVING ALL VIDEOS
 
+function loadAllVideos(sessionId, history, cleanSingle) {
+  return function (dispatch) {
+    if (cleanSingle) {
+      dispatch({
+        type: _types.VIDEO_CLEAN
+      });
+    }
     _axios2.default.get('http://localhost:3000/videos', {
       params: {
         sessionId: sessionId

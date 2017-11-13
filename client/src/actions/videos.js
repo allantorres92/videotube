@@ -5,12 +5,15 @@ import {
 import axios from 'axios';
 import { logout } from './';
 
-export function loadAllVideos(sessionId,history) {
-    return (dispatch) => {
-      dispatch({
-        type: VIDEO_CLEAN
-      });
+//METHOD FOR RETRIEVING ALL VIDEOS
 
+export function loadAllVideos(sessionId,history,cleanSingle) {
+    return (dispatch) => {
+      if(cleanSingle){
+        dispatch({
+          type: VIDEO_CLEAN
+        });
+      }
         axios.get('http://localhost:3000/videos', {
             params: {
               sessionId: sessionId
