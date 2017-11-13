@@ -8,7 +8,7 @@ import ReduxThunk from 'redux-thunk';
 import authReducer from './reducers/auth';
 import videoReducer from './reducers/videos';
 import uqvideoReducer from './reducers/uqvideo';
-import { loadAuth } from './actions/auth';
+import { loadAuth, logoutByUser } from './actions/auth';
 import { HashRouter as Router, Route, Link, Switch, hashHistory, Redirect  } from "react-router-dom";
 import home from "./home.jsx";
 import Viewvideo from "./Viewvideo.jsx";
@@ -30,6 +30,11 @@ const PrivateRoute = ({ component: Component, store, ...rest }) => (
 )
 
 class App extends React.Component {
+
+  doLogout(store,logoutfnc){
+    store.dispatch(logoutfnc(store.getState().toJS().auth.token));
+  }
+
   render() {
     const reducer = combineReducers({
       auth:authReducer,
@@ -55,6 +60,10 @@ class App extends React.Component {
                     <Link to="/" className="nav-link">Home <span className="sr-only">(current)</span></Link>
                   </li>
               </ul>
+              {store.getState().toJS().auth.loggedIn && <ul className="nav navbar-nav navbar-right">
+                <li><button onClick={this.doLogout.bind(this,store,logoutByUser)}>Log Out</button></li>
+              </ul>}
+             
               </div>
             </nav>
             <main role="main" className="container">

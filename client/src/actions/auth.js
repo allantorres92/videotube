@@ -33,7 +33,6 @@ export function loadAuth() {
         password: md5(data.password)
       })
       .then(function (response) {
-        console.log(response);
         if(response.data.status == 'error'){
           throw new Error(response.data.error);          
         }
@@ -68,15 +67,15 @@ export function loadAuth() {
         }
       })
       .then(function (response) {
-        console.log(response);
         if(response.data.status == 'error'){
           throw new Error(response.data.error);          
         }
         window.localStorage.removeItem('token');
         dispatch({ type: AUTH_LOGOUT_SUCCESS });
-        history.replace("/");                  
+        location.reload();
       })
       .catch(function (error) {
+        //fallback to logout anyways
         if(error.toString().includes('401')){
           dispatch(logout(history));              
         }

@@ -15,7 +15,6 @@ export function loadVideo(videoId,sessionId,history) {
             }
           })
           .then(function (response) {
-            console.log(response);
             if(response.data.status == 'error'){
               throw new Error(response.data.error);          
             }
@@ -42,7 +41,6 @@ export function loadVideo(videoId,sessionId,history) {
           rating: rating
         })
           .then(function (response) {
-            console.log(response);
             if(response.data.status == 'error'){
               throw new Error(response.data.error);          
             }
@@ -54,7 +52,6 @@ export function loadVideo(videoId,sessionId,history) {
             if(error.toString().includes('401')){
               dispatch(logout(history));              
             }
-            console.log('errorazo');
             console.log(error);
             //dispatch({ type: AUTH_LOGIN_FAILURE, payload:error });
           });    

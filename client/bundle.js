@@ -9170,6 +9170,11 @@ var App = function (_React$Component) {
   }
 
   _createClass(App, [{
+    key: 'doLogout',
+    value: function doLogout(store, logoutfnc) {
+      store.dispatch(logoutfnc(store.getState().toJS().auth.token));
+    }
+  }, {
     key: 'render',
     value: function render() {
       var reducer = (0, _reduxImmutablejs.combineReducers)({
@@ -9220,6 +9225,19 @@ var App = function (_React$Component) {
                         { className: 'sr-only' },
                         '(current)'
                       )
+                    )
+                  )
+                ),
+                store.getState().toJS().auth.loggedIn && _react2.default.createElement(
+                  'ul',
+                  { className: 'nav navbar-nav navbar-right' },
+                  _react2.default.createElement(
+                    'li',
+                    null,
+                    _react2.default.createElement(
+                      'button',
+                      { onClick: this.doLogout.bind(this, store, _auth3.logoutByUser) },
+                      'Log Out'
                     )
                   )
                 )
@@ -28568,7 +28586,6 @@ var login = exports.login = function login(data, history) {
       username: data.username,
       password: (0, _jsMd2.default)(data.password)
     }).then(function (response) {
-      console.log(response);
       if (response.data.status == 'error') {
         throw new Error(response.data.error);
       }
@@ -28599,14 +28616,14 @@ function logoutByUser(sessionId, history) {
         sessionId: sessionId
       }
     }).then(function (response) {
-      console.log(response);
       if (response.data.status == 'error') {
         throw new Error(response.data.error);
       }
       window.localStorage.removeItem('token');
       dispatch({ type: _types.AUTH_LOGOUT_SUCCESS });
-      history.replace("/");
+      location.reload();
     }).catch(function (error) {
+      //fallback to logout anyways
       if (error.toString().includes('401')) {
         dispatch(logout(history));
       }
@@ -33552,7 +33569,6 @@ function loadAllVideos(sessionId, history) {
         sessionId: sessionId
       }
     }).then(function (response) {
-      console.log(response);
       if (response.data.status == 'error') {
         throw new Error(response.data.error);
       }
@@ -33880,7 +33896,6 @@ function loadVideo(videoId, sessionId, history) {
         videoId: videoId
       }
     }).then(function (response) {
-      console.log(response);
       if (response.data.status == 'error') {
         throw new Error(response.data.error);
       }
@@ -33903,7 +33918,6 @@ function saveRating(videoId, rating, sessionId, history) {
       videoId: videoId,
       rating: rating
     }).then(function (response) {
-      console.log(response);
       if (response.data.status == 'error') {
         throw new Error(response.data.error);
       }
@@ -33914,7 +33928,6 @@ function saveRating(videoId, rating, sessionId, history) {
       if (error.toString().includes('401')) {
         dispatch((0, _.logout)(history));
       }
-      console.log('errorazo');
       console.log(error);
       //dispatch({ type: AUTH_LOGIN_FAILURE, payload:error });
     });
@@ -34016,7 +34029,6 @@ var Starrating = function (_React$Component) {
             var _this2 = this;
 
             var rows = [];
-            console.log(this.props);
             return _react2.default.createElement(
                 'div',
                 { className: 'rating ' },

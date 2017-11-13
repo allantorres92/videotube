@@ -17,7 +17,6 @@ export function loadAllVideos(sessionId,history) {
             }
           })
           .then(function (response) {
-            console.log(response);
             if(response.data.status == 'error'){
               throw new Error(response.data.error);          
             }

@@ -15,7 +15,6 @@ class Starrating extends React.Component {
     
   render() {
   var rows = [];
-console.log(this.props);
     return (
             <div className="rating ">
                 {(() =>{
