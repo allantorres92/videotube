@@ -40,6 +40,15 @@
         return fromJS({
             ...state.toJS(),
             error: action.payload,
+            isLoggingIn:false
+        });
+    case AUTH_LOGOUT_SUCCESS:
+        return fromJS({
+            ...state.toJS(),
+            error: null,
+            isLoggingIn:false,
+            loggedIn:false,
+            token:null
         });
     default:
         return state;

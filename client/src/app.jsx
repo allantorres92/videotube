@@ -6,9 +6,12 @@ import { combineReducers } from 'redux-immutablejs';
 import { fromJS } from 'immutable'
 import ReduxThunk from 'redux-thunk';
 import authReducer from './reducers/auth';
+import videoReducer from './reducers/videos';
+import uqvideoReducer from './reducers/uqvideo';
 import { loadAuth } from './actions/auth';
 import { HashRouter as Router, Route, Link, Switch, hashHistory, Redirect  } from "react-router-dom";
 import home from "./home.jsx";
+import Viewvideo from "./Viewvideo.jsx";
 import loginForm from "./login.jsx";
 
  
@@ -29,7 +32,9 @@ const PrivateRoute = ({ component: Component, store, ...rest }) => (
 class App extends React.Component {
   render() {
     const reducer = combineReducers({
-      auth:authReducer
+      auth:authReducer,
+      videos:videoReducer,
+      uqvideo:uqvideoReducer
     });
     const store = createStore(reducer, fromJS({}), applyMiddleware(ReduxThunk));
     store.dispatch(loadAuth());
@@ -39,7 +44,7 @@ class App extends React.Component {
         <Router history={hashHistory} >
           <div>
               <nav className="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-              <a className="navbar-brand" href="#">Test</a>
+              <a className="navbar-brand" href="#">Crossover Video Portal</a>
               <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
                 <span className="navbar-toggler-icon"></span>
               </button>
@@ -53,12 +58,11 @@ class App extends React.Component {
               </div>
             </nav>
             <main role="main" className="container">
-              <div className="videoApp">
                 <Switch>
                   <PrivateRoute exact path="/" component={home} store={store}/>
+                  <PrivateRoute  path="/ViewVideo/:id" component={Viewvideo} store={store}/>
                   <Route exact path="/login" component={loginForm}/>
                 </Switch>
-              </div>
             </main>
           </div>                
       </Router>

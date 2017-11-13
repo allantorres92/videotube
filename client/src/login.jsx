@@ -40,6 +40,7 @@ class loginForm extends React.Component {
         <div className="row justify-content-center">
             <div className="col-8">
                 <h2 className="LoginTitle">Login</h2>
+                {this.props.auth.error && <h6 className="errorMsg">Invalid Username or Password </h6>}
                 <form onSubmit={this.handleSubmit}>
                     <div className="form-group">
                         <label htmlFor="InputUser">UserName</label>

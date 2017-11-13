@@ -43,11 +43,51 @@ export function loadAuth() {
         history.replace("/");
       })
       .catch(function (error) {
-        console.log('allan')
         console.log(error)
         dispatch({ type: AUTH_LOGIN_FAILURE, payload:error });
       });
       
     };
   };
+
+  export function logout(history) {
+    return (dispatch) => {
+      window.localStorage.removeItem('token');
+      dispatch({ type: AUTH_LOGOUT_SUCCESS });
+      history.replace("/");      
+    };
+  };
+
+  export function logoutByUser(sessionId,history) {
+    return (dispatch) => {
+
+
+      axios.get('http://localhost:3000/user/logout', {
+        params: {
+          sessionId: sessionId
+        }
+      })
+      .then(function (response) {
+        console.log(response);
+        if(response.data.status == 'error'){
+          throw new Error(response.data.error);          
+        }
+        window.localStorage.removeItem('token');
+        dispatch({ type: AUTH_LOGOUT_SUCCESS });
+        history.replace("/");                  
+      })
+      .catch(function (error) {
+        if(error.toString().includes('401')){
+          dispatch(logout(history));              
+        }
+        //dispatch({ type: AUTH_LOGIN_FAILURE, payload:error });
+      });    
+
+
+
+         
+    };
+  };
+
+
   

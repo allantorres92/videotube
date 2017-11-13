@@ -8262,11 +8262,20 @@ function verifyPlainObject(value, displayName, methodName) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+//AUTH
 var AUTH_LOAD_SUCCESS = exports.AUTH_LOAD_SUCCESS = 'AUTH_LOAD_SUCCESS';
 var AUTH_LOGIN_REQUEST = exports.AUTH_LOGIN_REQUEST = 'AUTH_LOGIN_REQUEST';
 var AUTH_LOGIN_SUCCESS = exports.AUTH_LOGIN_SUCCESS = 'AUTH_LOGIN_SUCCESS';
 var AUTH_LOGIN_FAILURE = exports.AUTH_LOGIN_FAILURE = 'AUTH_LOGIN_FAILURE';
 var AUTH_LOGOUT_SUCCESS = exports.AUTH_LOGOUT_SUCCESS = 'AUTH_LOGOUT_SUCCESS';
+
+//VIDEOS
+var VIDEOS_FETCH_ALL = exports.VIDEOS_FETCH_ALL = 'VIDEOS_FETCH_ALL';
+
+//VIDEO
+var VIDEO_FETCH = exports.VIDEO_FETCH = 'VIDEO_FETCH';
+var VIDEO_CLEAN = exports.VIDEO_CLEAN = 'VIDEO_CLEAN';
+var SAVE_RATING = exports.SAVE_RATING = 'SAVE_RATING';
 
 /***/ }),
 /* 46 */
@@ -9104,6 +9113,14 @@ var _auth = __webpack_require__(100);
 
 var _auth2 = _interopRequireDefault(_auth);
 
+var _videos = __webpack_require__(153);
+
+var _videos2 = _interopRequireDefault(_videos);
+
+var _uqvideo = __webpack_require__(158);
+
+var _uqvideo2 = _interopRequireDefault(_uqvideo);
+
 var _auth3 = __webpack_require__(101);
 
 var _reactRouterDom = __webpack_require__(102);
@@ -9111,6 +9128,10 @@ var _reactRouterDom = __webpack_require__(102);
 var _home = __webpack_require__(128);
 
 var _home2 = _interopRequireDefault(_home);
+
+var _Viewvideo = __webpack_require__(156);
+
+var _Viewvideo2 = _interopRequireDefault(_Viewvideo);
 
 var _login = __webpack_require__(129);
 
@@ -9152,7 +9173,9 @@ var App = function (_React$Component) {
     key: 'render',
     value: function render() {
       var reducer = (0, _reduxImmutablejs.combineReducers)({
-        auth: _auth2.default
+        auth: _auth2.default,
+        videos: _videos2.default,
+        uqvideo: _uqvideo2.default
       });
       var store = (0, _redux.createStore)(reducer, (0, _immutable.fromJS)({}), (0, _redux.applyMiddleware)(_reduxThunk2.default));
       store.dispatch((0, _auth3.loadAuth)());
@@ -9172,7 +9195,7 @@ var App = function (_React$Component) {
               _react2.default.createElement(
                 'a',
                 { className: 'navbar-brand', href: '#' },
-                'Test'
+                'Crossover Video Portal'
               ),
               _react2.default.createElement(
                 'button',
@@ -9206,14 +9229,11 @@ var App = function (_React$Component) {
               'main',
               { role: 'main', className: 'container' },
               _react2.default.createElement(
-                'div',
-                { className: 'videoApp' },
-                _react2.default.createElement(
-                  _reactRouterDom.Switch,
-                  null,
-                  _react2.default.createElement(PrivateRoute, { exact: true, path: '/', component: _home2.default, store: store }),
-                  _react2.default.createElement(_reactRouterDom.Route, { exact: true, path: '/login', component: _login2.default })
-                )
+                _reactRouterDom.Switch,
+                null,
+                _react2.default.createElement(PrivateRoute, { exact: true, path: '/', component: _home2.default, store: store }),
+                _react2.default.createElement(PrivateRoute, { path: '/ViewVideo/:id', component: _Viewvideo2.default, store: store }),
+                _react2.default.createElement(_reactRouterDom.Route, { exact: true, path: '/login', component: _login2.default })
               )
             )
           )
@@ -28483,7 +28503,15 @@ exports.default = function () {
             }));
         case _types.AUTH_LOGIN_FAILURE:
             return (0, _immutable.fromJS)(_extends({}, state.toJS(), {
-                error: action.payload
+                error: action.payload,
+                isLoggingIn: false
+            }));
+        case _types.AUTH_LOGOUT_SUCCESS:
+            return (0, _immutable.fromJS)(_extends({}, state.toJS(), {
+                error: null,
+                isLoggingIn: false,
+                loggedIn: false,
+                token: null
             }));
         default:
             return state;
@@ -28502,6 +28530,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.login = undefined;
 exports.loadAuth = loadAuth;
+exports.logout = logout;
+exports.logoutByUser = logoutByUser;
 
 var _types = __webpack_require__(45);
 
@@ -28547,9 +28577,40 @@ var login = exports.login = function login(data, history) {
       dispatch({ type: _types.AUTH_LOGIN_SUCCESS, payload: response.data.sessionId });
       history.replace("/");
     }).catch(function (error) {
-      console.log('allan');
       console.log(error);
       dispatch({ type: _types.AUTH_LOGIN_FAILURE, payload: error });
+    });
+  };
+};
+
+function logout(history) {
+  return function (dispatch) {
+    window.localStorage.removeItem('token');
+    dispatch({ type: _types.AUTH_LOGOUT_SUCCESS });
+    history.replace("/");
+  };
+};
+
+function logoutByUser(sessionId, history) {
+  return function (dispatch) {
+
+    _axios2.default.get('http://localhost:3000/user/logout', {
+      params: {
+        sessionId: sessionId
+      }
+    }).then(function (response) {
+      console.log(response);
+      if (response.data.status == 'error') {
+        throw new Error(response.data.error);
+      }
+      window.localStorage.removeItem('token');
+      dispatch({ type: _types.AUTH_LOGOUT_SUCCESS });
+      history.replace("/");
+    }).catch(function (error) {
+      if (error.toString().includes('401')) {
+        dispatch(logout(history));
+      }
+      //dispatch({ type: AUTH_LOGIN_FAILURE, payload:error });
     });
   };
 };
@@ -31583,6 +31644,8 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _react = __webpack_require__(1);
@@ -31592,6 +31655,16 @@ var _react2 = _interopRequireDefault(_react);
 var _reactDom = __webpack_require__(17);
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
+
+var _reactRedux = __webpack_require__(34);
+
+var _immutable = __webpack_require__(9);
+
+var _actions = __webpack_require__(151);
+
+var _Videocard = __webpack_require__(155);
+
+var _Videocard2 = _interopRequireDefault(_Videocard);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -31611,20 +31684,38 @@ var home = function (_React$Component) {
     }
 
     _createClass(home, [{
+        key: 'componentWillMount',
+        value: function componentWillMount() {
+            this.props.loadAllVideos(this.props.auth.token, this.props.history);
+        }
+    }, {
         key: 'render',
         value: function render() {
+            var _props$videos = this.props.videos,
+                loaded = _props$videos.loaded,
+                videos = _props$videos.videos;
+
+
+            if (!loaded) {
+                return _react2.default.createElement(
+                    'div',
+                    { className: 'row justify-content-center' },
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'col-3' },
+                        _react2.default.createElement('div', { className: 'loader' })
+                    )
+                );
+            }
             return _react2.default.createElement(
                 'div',
-                null,
+                { className: 'container-fluid' },
                 _react2.default.createElement(
-                    'h2',
-                    null,
-                    'Crossover Video Portal'
-                ),
-                _react2.default.createElement(
-                    'p',
-                    { className: 'lead' },
-                    'Use this document as a way to quickly start any new project. All you get is this text and a mostly barebones HTML document.'
+                    'div',
+                    { className: 'row' },
+                    videos.map(function (video, index) {
+                        return _react2.default.createElement(_Videocard2.default, { key: video._id, video: video });
+                    })
                 )
             );
         }
@@ -31633,7 +31724,11 @@ var home = function (_React$Component) {
     return home;
 }(_react2.default.Component);
 
-exports.default = home;
+var mapStateToProps = function mapStateToProps(state) {
+    return _extends({}, state.toJS());
+};
+
+exports.default = (0, _reactRedux.connect)(mapStateToProps, { loadAllVideos: _actions.loadAllVideos })(home);
 
 /***/ }),
 /* 129 */
@@ -31720,6 +31815,11 @@ var loginForm = function (_React$Component) {
                         'h2',
                         { className: 'LoginTitle' },
                         'Login'
+                    ),
+                    this.props.auth.error && _react2.default.createElement(
+                        'h6',
+                        { className: 'errorMsg' },
+                        'Invalid Username or Password '
                     ),
                     _react2.default.createElement(
                         'form',
@@ -33394,6 +33494,568 @@ Object.keys(_auth).forEach(function (key) {
     }
   });
 });
+
+var _uqvideo = __webpack_require__(157);
+
+Object.keys(_uqvideo).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _uqvideo[key];
+    }
+  });
+});
+
+var _videos = __webpack_require__(152);
+
+Object.keys(_videos).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _videos[key];
+    }
+  });
+});
+
+/***/ }),
+/* 152 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.loadAllVideos = loadAllVideos;
+
+var _types = __webpack_require__(45);
+
+var _axios = __webpack_require__(130);
+
+var _axios2 = _interopRequireDefault(_axios);
+
+var _ = __webpack_require__(151);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function loadAllVideos(sessionId, history) {
+  return function (dispatch) {
+    dispatch({
+      type: _types.VIDEO_CLEAN
+    });
+
+    _axios2.default.get('http://localhost:3000/videos', {
+      params: {
+        sessionId: sessionId
+      }
+    }).then(function (response) {
+      console.log(response);
+      if (response.data.status == 'error') {
+        throw new Error(response.data.error);
+      }
+      dispatch({
+        type: _types.VIDEOS_FETCH_ALL,
+        payload: response.data.data
+      });
+    }).catch(function (error) {
+      if (error.toString().includes('401')) {
+        dispatch((0, _.logout)(history));
+      }
+      //dispatch({ type: AUTH_LOGIN_FAILURE, payload:error });
+    });
+  };
+};
+
+/***/ }),
+/* 153 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _immutable = __webpack_require__(9);
+
+var _types = __webpack_require__(45);
+
+var INITIAL_STATE = (0, _immutable.fromJS)({
+    videos: [],
+    loaded: false
+});
+
+exports.default = function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : INITIAL_STATE;
+    var action = arguments[1];
+
+    switch (action.type) {
+        case _types.VIDEOS_FETCH_ALL:
+            return (0, _immutable.fromJS)(_extends({}, state.toJS(), {
+                videos: action.payload,
+                loaded: true
+            }));
+        default:
+            return state;
+    }
+};
+
+/***/ }),
+/* 154 */,
+/* 155 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(1);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = __webpack_require__(17);
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+var _reactRouterDom = __webpack_require__(102);
+
+var _Starrating = __webpack_require__(159);
+
+var _Starrating2 = _interopRequireDefault(_Starrating);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Videocard = function (_React$Component) {
+    _inherits(Videocard, _React$Component);
+
+    function Videocard() {
+        _classCallCheck(this, Videocard);
+
+        return _possibleConstructorReturn(this, (Videocard.__proto__ || Object.getPrototypeOf(Videocard)).apply(this, arguments));
+    }
+
+    _createClass(Videocard, [{
+        key: 'render',
+        value: function render() {
+            var video = this.props.video;
+            //CALCULATIONS FOR RATING
+
+            var sum = 0;
+            video.ratings.map(function (rating) {
+                sum += rating;
+            });
+            var average = sum / video.ratings.length;
+
+            return _react2.default.createElement(
+                'div',
+                { key: video._id, className: 'col-sm-6 col-md-4 col-lg-3' },
+                _react2.default.createElement(
+                    'div',
+                    { className: 'card' },
+                    _react2.default.createElement(
+                        'video',
+                        { className: 'card-img-top', controls: true },
+                        _react2.default.createElement('source', { src: video.url, type: 'video/mp4' }),
+                        'Your browser does not support the video tag.'
+                    ),
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'card-body' },
+                        _react2.default.createElement(
+                            'div',
+                            { className: 'row justify-content-center' },
+                            _react2.default.createElement(_Starrating2.default, { rating: '5', actualrating: average, editable: false })
+                        ),
+                        _react2.default.createElement(
+                            'div',
+                            { className: 'row' },
+                            _react2.default.createElement(
+                                _reactRouterDom.Link,
+                                { to: "/ViewVideo/" + video._id, className: 'card-title-link' },
+                                _react2.default.createElement(
+                                    'h4',
+                                    { className: 'card-title' },
+                                    video.name
+                                ),
+                                _react2.default.createElement(
+                                    'p',
+                                    { className: 'card-text' },
+                                    video.description
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Videocard;
+}(_react2.default.Component);
+
+exports.default = Videocard;
+
+/***/ }),
+/* 156 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(1);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = __webpack_require__(17);
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+var _reactRedux = __webpack_require__(34);
+
+var _immutable = __webpack_require__(9);
+
+var _actions = __webpack_require__(151);
+
+var _Videocard = __webpack_require__(155);
+
+var _Videocard2 = _interopRequireDefault(_Videocard);
+
+var _Starrating = __webpack_require__(159);
+
+var _Starrating2 = _interopRequireDefault(_Starrating);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Viewvideo = function (_React$Component) {
+    _inherits(Viewvideo, _React$Component);
+
+    function Viewvideo() {
+        _classCallCheck(this, Viewvideo);
+
+        return _possibleConstructorReturn(this, (Viewvideo.__proto__ || Object.getPrototypeOf(Viewvideo)).apply(this, arguments));
+    }
+
+    _createClass(Viewvideo, [{
+        key: 'componentWillMount',
+        value: function componentWillMount() {
+            this.props.loadVideo(this.props.match.params.id, this.props.auth.token, this.props.history);
+        }
+    }, {
+        key: 'changerating',
+        value: function changerating(rating) {
+            this.props.saveRating(this.props.uqvideo.video._id, rating, this.props.auth.token, this.props.history);
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            var _props$uqvideo = this.props.uqvideo,
+                loaded = _props$uqvideo.loaded,
+                video = _props$uqvideo.video;
+
+
+            if (!loaded) {
+                return _react2.default.createElement(
+                    'div',
+                    { className: 'row justify-content-center' },
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'col-3' },
+                        _react2.default.createElement('div', { className: 'loader' })
+                    )
+                );
+            }
+
+            //LAS RATING INPUTTED, AND WILL BE REPLACED WHEN A NEW ONE IS SUBMITTED
+            var rating = video.ratings[video.ratings.length - 1];
+
+            return _react2.default.createElement(
+                'div',
+                null,
+                _react2.default.createElement(
+                    'div',
+                    { className: 'row justify-content-center' },
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'embed-responsive embed-responsive-16by9' },
+                        _react2.default.createElement(
+                            'video',
+                            { controls: true, autoPlay: true, loop: true, className: 'embed-responsive-item' },
+                            _react2.default.createElement('source', { src: video.url, type: 'video/mp4' }),
+                            'Your browser does not support the video tag.'
+                        )
+                    )
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'row justify-content-center' },
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'col-12' },
+                        _react2.default.createElement(
+                            'h2',
+                            null,
+                            video.name
+                        ),
+                        _react2.default.createElement(_Starrating2.default, { rating: '5', actualrating: rating, editable: true, changerating: this.changerating.bind(this) }),
+                        _react2.default.createElement(
+                            'p',
+                            null,
+                            video.description
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Viewvideo;
+}(_react2.default.Component);
+
+var mapStateToProps = function mapStateToProps(state) {
+    return _extends({}, state.toJS());
+};
+
+exports.default = (0, _reactRedux.connect)(mapStateToProps, { loadVideo: _actions.loadVideo, saveRating: _actions.saveRating })(Viewvideo);
+
+/***/ }),
+/* 157 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.loadVideo = loadVideo;
+exports.saveRating = saveRating;
+
+var _types = __webpack_require__(45);
+
+var _axios = __webpack_require__(130);
+
+var _axios2 = _interopRequireDefault(_axios);
+
+var _ = __webpack_require__(151);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function loadVideo(videoId, sessionId, history) {
+  return function (dispatch) {
+
+    _axios2.default.get('http://localhost:3000/video', {
+      params: {
+        sessionId: sessionId,
+        videoId: videoId
+      }
+    }).then(function (response) {
+      console.log(response);
+      if (response.data.status == 'error') {
+        throw new Error(response.data.error);
+      }
+      dispatch({
+        type: _types.VIDEO_FETCH,
+        payload: response.data.data
+      });
+    }).catch(function (error) {
+      if (error.toString().includes('401')) {
+        dispatch((0, _.logout)(history));
+      }
+      //dispatch({ type: AUTH_LOGIN_FAILURE, payload:error });
+    });
+  };
+};
+
+function saveRating(videoId, rating, sessionId, history) {
+  return function (dispatch) {
+    _axios2.default.post('http://localhost:3000/video/ratings?sessionId=' + sessionId, {
+      videoId: videoId,
+      rating: rating
+    }).then(function (response) {
+      console.log(response);
+      if (response.data.status == 'error') {
+        throw new Error(response.data.error);
+      }
+      dispatch({
+        type: _types.SAVE_RATING
+      });
+    }).catch(function (error) {
+      if (error.toString().includes('401')) {
+        dispatch((0, _.logout)(history));
+      }
+      console.log('errorazo');
+      console.log(error);
+      //dispatch({ type: AUTH_LOGIN_FAILURE, payload:error });
+    });
+  };
+};
+
+/***/ }),
+/* 158 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _immutable = __webpack_require__(9);
+
+var _types = __webpack_require__(45);
+
+var INITIAL_STATE = (0, _immutable.fromJS)({
+    video: {},
+    loaded: false
+});
+
+exports.default = function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : INITIAL_STATE;
+    var action = arguments[1];
+
+    switch (action.type) {
+        case _types.VIDEO_FETCH:
+            return (0, _immutable.fromJS)(_extends({}, state.toJS(), {
+                video: action.payload,
+                loaded: true
+            }));
+        case _types.VIDEO_CLEAN:
+            return (0, _immutable.fromJS)(_extends({}, state.toJS(), {
+                video: {},
+                loaded: false
+            }));
+        default:
+            return state;
+    }
+};
+
+/***/ }),
+/* 159 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(1);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = __webpack_require__(17);
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Starrating = function (_React$Component) {
+    _inherits(Starrating, _React$Component);
+
+    function Starrating(props) {
+        _classCallCheck(this, Starrating);
+
+        var _this = _possibleConstructorReturn(this, (Starrating.__proto__ || Object.getPrototypeOf(Starrating)).call(this, props));
+
+        _this.state = { actualRating: _this.props.actualrating };
+        return _this;
+    }
+
+    _createClass(Starrating, [{
+        key: 'changerating',
+        value: function changerating(newrating) {
+            this.props.changerating(newrating);
+            this.setState({ actualRating: newrating });
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            var _this2 = this;
+
+            var rows = [];
+            console.log(this.props);
+            return _react2.default.createElement(
+                'div',
+                { className: 'rating ' },
+                function () {
+                    if (_this2.props.editable) {
+                        for (var i = 1; i <= _this2.props.rating; i++) {
+                            if (i <= _this2.state.actualRating) {
+                                rows.push(_react2.default.createElement(
+                                    'a',
+                                    { key: i, onClick: _this2.changerating.bind(_this2, i) },
+                                    _react2.default.createElement('i', { className: 'fa fa-star fa-2x', 'aria-hidden': 'true' })
+                                ));
+                            } else {
+                                rows.push(_react2.default.createElement(
+                                    'a',
+                                    { key: i, onClick: _this2.changerating.bind(_this2, i) },
+                                    _react2.default.createElement('i', { className: 'fa fa-star-o fa-2x', 'aria-hidden': 'true' })
+                                ));
+                            }
+                        }
+                    } else {
+                        for (var i = 1; i <= _this2.props.rating; i++) {
+                            if (i <= _this2.state.actualRating) {
+                                rows.push(_react2.default.createElement('i', { key: i, className: 'fa fa-star fa-lg', 'aria-hidden': 'true' }));
+                            } else {
+                                rows.push(_react2.default.createElement('i', { key: i, className: 'fa fa-star-o fa-lg', 'aria-hidden': 'true' }));
+                            }
+                        }
+                    }
+                    return rows;
+                }()
+            );
+        }
+    }]);
+
+    return Starrating;
+}(_react2.default.Component);
+
+exports.default = Starrating;
 
 /***/ })
 /******/ ]);
