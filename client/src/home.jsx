@@ -23,12 +23,14 @@ class home extends React.Component {
                 </div>
             );
         }
+
+        
         return(
             <div className="container-fluid" >
                 <div className="row">
                     {videos.map((video,index) =>{
                         return(
-                            <Videocard key={video._id} video={video}/>
+                            <Videocard key={video._id} video={video} data={{length:videos.length,index}} />
                         );
                     })}
                 </div>

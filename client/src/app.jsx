@@ -15,7 +15,7 @@ import Viewvideo from "./Viewvideo.jsx";
 import loginForm from "./login.jsx";
 
  
-
+//Object to do a redirect if the user is not logged in.
 const PrivateRoute = ({ component: Component, store, ...rest }) => (
   <Route {...rest} render={props => (
     store.getState().toJS().auth.loggedIn ? (
@@ -29,8 +29,19 @@ const PrivateRoute = ({ component: Component, store, ...rest }) => (
   )}/>
 )
 
-class App extends React.Component {
+const Renderlogout = ({store, fncLogOut}) => (
+  store.getState().toJS().auth.loggedIn?(
+        <ul className="nav navbar-nav navbar-right">
+          <li><button onClick={fncLogOut}>Log Out</button></li>
+        </ul>
+  ):(
+    <div>
+    </div>
+  )
+)
 
+class App extends React.Component {
+  
   doLogout(store,logoutfnc){
     store.dispatch(logoutfnc(store.getState().toJS().auth.token));
   }
@@ -43,7 +54,6 @@ class App extends React.Component {
     });
     const store = createStore(reducer, fromJS({}), applyMiddleware(ReduxThunk));
     store.dispatch(loadAuth());
-    
     return (
       <Provider store={store}>
         <Router history={hashHistory} >
@@ -60,9 +70,7 @@ class App extends React.Component {
                     <Link to="/" className="nav-link">Home <span className="sr-only">(current)</span></Link>
                   </li>
               </ul>
-              {store.getState().toJS().auth.loggedIn && <ul className="nav navbar-nav navbar-right">
-                <li><button onClick={this.doLogout.bind(this,store,logoutByUser)}>Log Out</button></li>
-              </ul>}
+               <Renderlogout store={store} fncLogOut={this.doLogout.bind(this,store,logoutByUser)} />
              
               </div>
             </nav>
